@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anime4u Networks</title>
+<style>
+/* ======================================================================
+   ANIME4U NETWORKS — obsidian / purple chakra theme
+   ====================================================================== */
+:root{
+  --obsidian-0:#05040a;
+  --obsidian-1:#0b0812;
+  --obsidian-2:#120c1e;
+  --violet:#8b3bff;
+  --violet-bright:#b06bff;
+  --violet-dim:#4a1f8f;
+  --ember:#ff5a3c;
+  --water:#2f7fff;
+  --text-hi:#f2ecff;
+  --text-lo:#a89bc4;
+  --font-display: 'Cinzel', 'Iowan Old Style', 'Palatino Linotype', serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+html,body{
+  height:100%;
+  background:var(--obsidian-0);
+  color:var(--text-hi);
+  font-family:var(--font-body);
+  overflow-x:hidden;
+}
+
+/* Cursor-reactive obsidian glow field */
+#glowfield{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background:
+    radial-gradient(600px circle at var(--mx,50%) var(--my,50%),
+      rgba(139,59,255,0.22), rgba(139,59,255,0.06) 35%, transparent 60%),
+    radial-gradient(1200px circle at 20% 110%, rgba(74,31,143,0.18), transparent 60%),
+    linear-gradient(180deg, var(--obsidian-0), var(--obsidian-1) 40%, var(--obsidian-0));
+  transition:background 60ms linear;
+}
+
+#glowfield::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background-image:
+    radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size:3px 3px;
+  opacity:.5;
+  mix-blend-mode:overlay;
+}
+
+/* ======================================================================
+   INTRO SEQUENCE — water from top-left, lava from bottom-right
+   ====================================================================== */
+#intro{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  background:var(--obsidian-0);
+  overflow:hidden;
+}
+
+#intro .surge{
+  position:absolute;
+  width:150vmax;
+  height:150vmax;
+  border-radius:38%;
+}
+
+#surge-water{
+  top:-120vmax;
+  left:-120vmax;
+  background:
+    radial-gradient(circle at 70% 70%, #bfe4ff, #4ea8ff 35%, #1354c4 65%, #062a66 100%);
+  filter:blur(2px);
+  box-shadow:0 0 120px 40px rgba(78,168,255,0.55);
+  animation:surge-water-move 1.9s cubic-bezier(.61,.04,.32,1) forwards;
+}
+
+#surge-lava{
+  bottom:-120vmax;
+  right:-120vmax;
+  background:
+    radial-gradient(circle at 30% 30%, #ffe8a3, #ff8a3d 30%, #c73a1f 60%, #430b02 100%);
+  filter:blur(2px);
+  box-shadow:0 0 140px 50px rgba(255,90,60,0.6);
+  animation:surge-lava-move 1.9s cubic-bezier(.61,.04,.32,1) forwards;
+}
+
+@keyframes surge-water-move{
+  0%{ transform:translate(0,0) scale(.6); }
+  70%{ transform:translate(78vmax,78vmax) scale(1); }
+  100%{ transform:translate(84vmax,84vmax) scale(1.05); }
+}
+@keyframes surge-lava-move{
+  0%{ transform:translate(0,0) scale(.6); }
+  70%{ transform:translate(-78vmax,-78vmax) scale(1); }
+  100%{ transform:translate(-84vmax,-84vmax) scale(1.05); }
+}
+
+#intro-impact{
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:0;
+  height:0;
+  border-radius:50%;
+  transform:translate(-50%,-50%);
+  background:radial-gradient(circle, #fff, var(--violet-bright) 30%, transparent 70%);
+  opacity:0;
+  animation:impact-flash 0.9s ease-out 1.55s forwards;
+}
+@keyframes impact-flash{
+  0%{ width:0; height:0; opacity:0; }
+  35%{ width:140vmax; height:140vmax; opacity:.95; }
+  100%{ width:170vmax; height:170vmax; opacity:0; }
+}
+
+#intro-black{
+  position:absolute;
+  inset:0;
+  background:var(--obsidian-0);
+  opacity:0;
+  animation:to-black 0.8s ease-in 2.05s forwards;
+}
+@keyframes to-black{ to{ opacity:1; } }
+
+#intro-word{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:var(--font-display);
+  letter-spacing:.35em;
+  font-size:clamp(1.4rem,4vw,2.6rem);
+  color:var(--text-hi);
+  text-shadow:0 0 30px var(--violet-bright);
+  opacity:0;
+  animation:word-reveal 1.4s ease 2.4s forwards;
+  text-align:center;
+  padding:0 1rem;
+}
+@keyframes word-reveal{
+  0%{ opacity:0; letter-spacing:.8em; }
+  60%{ opacity:1; }
+  100%{ opacity:0; letter-spacing:.35em; }
+}
+
+#intro.done{ display:none; }
+
+/* ======================================================================
+   APP SHELL
+   ====================================================================== */
+#app{
+  position:relative;
+  z-index:1;
+  min-height:100vh;
+  opacity:0;
+  visibility:hidden;
+  transition:opacity 1.1s ease;
+}
+#app.show{ opacity:1; visibility:visible; }
+
+header.site-head{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:.6rem;
+  padding:4.5rem 1.5rem 2.5rem;
+  text-align:center;
+}
+
+.brand-eyebrow{
+  font-size:.7rem;
+  letter-spacing:.5em;
+  color:var(--text-lo);
+  text-transform:uppercase;
+}
+
+h1.brand{
+  font-family:var(--font-display);
+  font-size:clamp(2.2rem,6vw,4rem);
+  letter-spacing:.12em;
+  background:linear-gradient(180deg, #fff, var(--violet-bright) 70%, var(--violet-dim));
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  text-shadow:0 0 60px rgba(139,59,255,.35);
+}
+
+.brand-sub{
+  color:var(--text-lo);
+  font-size:.95rem;
+  max-width:32rem;
+  line-height:1.5;
+}
+
+/* ======================================================================
+   CAROUSEL — vertical 16:9 portal capsules
+   ====================================================================== */
+#carousel-wrap{
+  position:relative;
+  padding:2rem 0 4rem;
+}
+
+#carousel-track{
+  display:flex;
+  align-items:center;
+  gap:2.2rem;
+  padding:6vh 12vw;
+  overflow-x:auto;
+  scroll-behavior:smooth;
+  cursor:grab;
+  -ms-overflow-style:none;
+  scrollbar-width:none;
+  user-select:none;
+}
+#carousel-track::-webkit-scrollbar{ display:none; }
+#carousel-track.dragging{ cursor:grabbing; scroll-behavior:auto; }
+
+.portal{
+  position:relative;
+  flex:0 0 auto;
+  width:min(30vw, 220px);
+  aspect-ratio:9/16;
+  border-radius:46% / 24%;
+  overflow:hidden;
+  background:var(--obsidian-2);
+  border:1px solid rgba(176,107,255,0.25);
+  box-shadow:
+    0 0 0 1px rgba(139,59,255,0.08) inset,
+    0 20px 40px rgba(0,0,0,.55);
+  transform:scale(.78);
+  filter:brightness(.55) saturate(.7);
+  transition:transform .45s cubic-bezier(.2,.8,.2,1), filter .45s ease, box-shadow .45s ease;
+  will-change:transform;
+}
+
+.portal.active{
+  transform:scale(1.12);
+  filter:brightness(1) saturate(1.05);
+  box-shadow:
+    0 0 0 1px rgba(176,107,255,0.5) inset,
+    0 0 55px 6px rgba(139,59,255,0.55),
+    0 30px 60px rgba(0,0,0,.6);
+  border-color:var(--violet-bright);
+}
+
+.portal img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  pointer-events:none;
+  display:block;
+}
+
+.portal .portal-veil{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg, transparent 55%, rgba(5,4,10,.92) 100%);
+  pointer-events:none;
+}
+
+.portal .portal-name{
+  position:absolute;
+  left:0; right:0; bottom:0;
+  padding:1rem .8rem;
+  text-align:center;
+  font-size:.85rem;
+  letter-spacing:.08em;
+  color:var(--text-hi);
+  text-shadow:0 2px 8px rgba(0,0,0,.8);
+  pointer-events:none;
+}
+
+.portal-btn{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  border:0;
+  background:transparent;
+  cursor:pointer;
+  padding:0;
+}
+
+.portal-ring{
+  position:absolute;
+  inset:-3px;
+  border-radius:inherit;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .4s ease;
+  background:conic-gradient(from 0deg, var(--violet-bright), transparent 30%, var(--violet-bright) 60%, transparent 90%);
+  -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+  mask:radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+  animation:ring-spin 6s linear infinite;
+}
+.portal.active .portal-ring{ opacity:1; }
+@keyframes ring-spin{ to{ transform:rotate(360deg); } }
+
+.carousel-nav{
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+  z-index:3;
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  border:1px solid rgba(176,107,255,.4);
+  background:rgba(18,12,30,.7);
+  color:var(--text-hi);
+  font-size:1.1rem;
+  cursor:pointer;
+  backdrop-filter:blur(6px);
+  transition:background .2s ease, box-shadow .2s ease;
+}
+.carousel-nav:hover{ background:rgba(139,59,255,.3); box-shadow:0 0 20px rgba(139,59,255,.5); }
+.carousel-nav.prev{ left:1rem; }
+.carousel-nav.next{ right:1rem; }
+
+.hint{
+  text-align:center;
+  color:var(--text-lo);
+  font-size:.75rem;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  margin-top:.5rem;
+}
+
+/* ======================================================================
+   SHARINGAN LOADER
+   ====================================================================== */
+#sharingan-loader{
+  position:fixed;
+  inset:0;
+  z-index:99999;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(3,2,7,0.0);
+  overflow:hidden;
+}
+#sharingan-loader.active{
+  display:flex;
+  animation:loader-bg-in .35s ease forwards;
+}
+@keyframes loader-bg-in{ to{ background:rgba(3,2,7,0.96); } }
+
+.mud-blob{
+  position:absolute;
+  border-radius:44% 56% 62% 38% / 40% 45% 55% 60%;
+  background:radial-gradient(circle at 35% 35%, var(--violet-bright), var(--violet-dim) 60%, transparent 75%);
+  filter:blur(18px);
+  opacity:.55;
+  mix-blend-mode:screen;
+  animation:mud-morph 4.5s ease-in-out infinite;
+}
+.mud-blob.b1{ width:38vmax; height:38vmax; top:20%; left:15%; animation-duration:5.5s; }
+.mud-blob.b2{ width:30vmax; height:30vmax; bottom:15%; right:18%; animation-duration:4.2s; animation-delay:.5s; }
+.mud-blob.b3{ width:44vmax; height:44vmax; top:35%; right:30%; animation-duration:6.5s; animation-delay:1s; }
+@keyframes mud-morph{
+  0%,100%{ border-radius:44% 56% 62% 38% / 40% 45% 55% 60%; transform:scale(1) rotate(0deg); }
+  50%{ border-radius:60% 40% 35% 65% / 55% 60% 40% 45%; transform:scale(1.15) rotate(25deg); }
+}
+
+.sharingan{
+  position:relative;
+  width:min(38vw, 210px);
+  aspect-ratio:1/1;
+  border-radius:50%;
+  z-index:2;
+  animation:sharingan-spin-in 1.6s cubic-bezier(.2,.9,.25,1) forwards;
+}
+@keyframes sharingan-spin-in{
+  0%{ transform:scale(.2) rotate(0deg); opacity:0; }
+  55%{ opacity:1; }
+  100%{ transform:scale(1) rotate(900deg); opacity:1; }
+}
+
+.sharingan .iris{
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  background:radial-gradient(circle at 50% 50%, #ff2d2d 0%, #b50f0f 55%, #4a0303 100%);
+  box-shadow:0 0 45px 10px rgba(255,30,30,.55), 0 0 90px 25px rgba(139,59,255,.35);
+}
+.sharingan .pupil{
+  position:absolute;
+  top:50%; left:50%;
+  width:22%; height:22%;
+  border-radius:50%;
+  background:#0a0a0a;
+  transform:translate(-50%,-50%);
+  box-shadow:0 0 12px 4px rgba(0,0,0,.8) inset;
+}
+.tomoe{
+  position:absolute;
+  top:50%; left:50%;
+  width:100%; height:100%;
+  transform:translate(-50%,-50%);
+  animation:tomoe-spin 2.4s linear infinite;
+}
+@keyframes tomoe-spin{ to{ transform:translate(-50%,-50%) rotate(360deg); } }
+.tomoe span{
+  position:absolute;
+  width:20%;
+  height:20%;
+  background:#0a0a0a;
+  border-radius:70% 30% 55% 45% / 60% 55% 45% 40%;
+  top:14%;
+  left:50%;
+  transform-origin:50% 260%;
+}
+.tomoe span::after{
+  content:"";
+  position:absolute;
+  width:60%;
+  height:60%;
+  background:#0a0a0a;
+  border-radius:50%;
+  top:-38%;
+  left:20%;
+}
+.tomoe span:nth-child(1){ transform:translateX(-50%) rotate(0deg) translateY(0); }
+.tomoe span:nth-child(2){ transform:translateX(-50%) rotate(120deg) translateY(0); }
+.tomoe span:nth-child(3){ transform:translateX(-50%) rotate(240deg) translateY(0); }
+
+.loader-caption{
+  position:absolute;
+  bottom:14%;
+  left:0; right:0;
+  text-align:center;
+  color:var(--text-lo);
+  letter-spacing:.4em;
+  font-size:.75rem;
+  text-transform:uppercase;
+  z-index:2;
+  animation:caption-pulse 1.4s ease-in-out infinite;
+}
+@keyframes caption-pulse{ 0%,100%{opacity:.4;} 50%{opacity:1;} }
+
+/* ======================================================================
+   SOCIALS CARD — from Uiverse.io by vinodjangid07 (restyled to theme)
+   ====================================================================== */
+.socials-dock{
+  display:flex;
+  justify-content:center;
+  padding:2rem 1rem 5rem;
+}
+
+.card {
+  position: relative;
+  width: 190px;
+  height: 254px;
+  background: var(--obsidian-1);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 0 0 1px rgba(176,107,255,.25), 0 20px 45px rgba(0,0,0,.55);
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.card .background {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 120% at 50% 0%, rgba(139,59,255,.35), transparent 60%);
+}
+
+.logo {
+  position: absolute;
+  top: 18px;
+  left: 22px;
+  font-family: var(--font-display);
+  letter-spacing: .12em;
+  font-size: .78rem;
+  color: var(--text-lo);
+  text-transform: uppercase;
+  z-index: 3;
+}
+
+.card .box {
+  position: absolute;
+  background: rgba(18,12,30,.85);
+  border: 1px solid rgba(176,107,255,.3);
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index: 2;
+  transition: transform .35s ease, box-shadow .35s ease, background .35s ease;
+}
+.card .box:hover{
+  transform: translateY(-4px) scale(1.08);
+  background: rgba(139,59,255,.35);
+  box-shadow: 0 0 25px rgba(139,59,255,.6);
+}
+.card .box .icon .svg{ width: 24px; height: 24px; fill: var(--text-hi); }
+
+.box1 { top: 96px; left: 24px; }
+.box2 { top: 96px; right: 24px; }
+.box3 { bottom: 30px; left: 50%; transform: translateX(-50%); }
+.box4 { display:none; }
+
+/* ======================================================================
+   FOOTER
+   ====================================================================== */
+footer{
+  text-align:center;
+  color:var(--text-lo);
+  font-size:.75rem;
+  letter-spacing:.15em;
+  padding:2rem 1rem 3rem;
+  text-transform:uppercase;
+  opacity:.6;
+}
+
+@media (max-width:640px){
+  .portal{ width:52vw; }
+  #carousel-track{ padding:6vh 8vw; gap:1.2rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== INTRO SEQUENCE ===================== -->
+<div id="intro">
+  <div class="surge" id="surge-water"></div>
+  <div class="surge" id="surge-lava"></div>
+  <div id="intro-impact"></div>
+  <div id="intro-black"></div>
+  <div id="intro-word">ANIME4U&nbsp;NETWORKS</div>
+</div>
+
+<!-- ===================== CURSOR-REACTIVE BACKGROUND ===================== -->
+<div id="glowfield"></div>
+
+<!-- ===================== SHARINGAN LOADER ===================== -->
+<div id="sharingan-loader">
+  <div class="mud-blob b1"></div>
+  <div class="mud-blob b2"></div>
+  <div class="mud-blob b3"></div>
+  <div class="sharingan">
+    <div class="iris"></div>
+    <div class="tomoe"><span></span><span></span><span></span></div>
+    <div class="pupil"></div>
+  </div>
+  <div class="loader-caption">Opening portal…</div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div id="app">
+  <header class="site-head">
+    <div class="brand-eyebrow">Est. in the void</div>
+    <h1 class="brand">Anime4u Networks</h1>
+    <p class="brand-sub">A gateway of channels. Choose a portal, and the eye will carry you there.</p>
+  </header>
+
+  <section id="carousel-wrap">
+    <button class="carousel-nav prev" aria-label="Scroll left">&#10094;</button>
+    <div id="carousel-track"></div>
+    <button class="carousel-nav next" aria-label="Scroll right">&#10095;</button>
+    <p class="hint">Drag, scroll, or swipe to browse the portals</p>
+  </section>
+
+  <div class="socials-dock">
+    <!-- From Uiverse.io by vinodjangid07 (restyled) -->
+    <div class="card">
+      <div class="background"></div>
+      <div class="logo">Socials</div>
+
+      <a id="social-instagram" href="#" target="_blank" rel="noopener"><div class="box box1"><span class="icon"><svg viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg" class="svg">
+            <path d="M 9.9980469 3 C 6.1390469 3 3 6.1419531 3 10.001953 L 3 20.001953 C 3 23.860953 6.1419531 27 10.001953 27 L 20.001953 27 C 23.860953 27 27 23.858047 27 19.998047 L 27 9.9980469 C 27 6.1390469 23.858047 3 19.998047 3 L 9.9980469 3 z M 22 7 C 22.552 7 23 7.448 23 8 C 23 8.552 22.552 9 22 9 C 21.448 9 21 8.552 21 8 C 21 7.448 21.448 7 22 7 z M 15 9 C 18.309 9 21 11.691 21 15 C 21 18.309 18.309 21 15 21 C 11.691 21 9 18.309 9 15 C 9 11.691 11.691 9 15 9 z M 15 11 A 4 4 0 0 0 11 15 A 4 4 0 0 0 15 19 A 4 4 0 0 0 19 15 A 4 4 0 0 0 15 11 z"></path>
+          </svg></span></div></a>
+
+      <a id="social-twitter" href="#" target="_blank" rel="noopener"><div class="box box2"> <span class="icon"><svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" class="svg">
+            <path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"></path>
+          </svg></span></div></a>
+
+      <a id="social-discord" href="#" target="_blank" rel="noopener"><div class="box box3"><span class="icon"><svg viewBox="0 0 640 512" xmlns="http://www.w3.org/2000/svg" class="svg">
+            <path d="M524.531,69.836a1.5,1.5,0,0,0-.764-.7A485.065,485.065,0,0,0,404.081,32.03a1.816,1.816,0,0,0-1.923.91,337.461,337.461,0,0,0-14.9,30.6,447.848,447.848,0,0,0-134.426,0,309.541,309.541,0,0,0-15.135-30.6,1.89,1.89,0,0,0-1.924-.91A483.689,483.689,0,0,0,116.085,69.137a1.712,1.712,0,0,0-.788.676C39.068,183.651,18.186,294.69,28.43,404.354a2.016,2.016,0,0,0,.765,1.375A487.666,487.666,0,0,0,176.02,479.918a1.9,1.9,0,0,0,2.063-.676A348.2,348.2,0,0,0,208.12,430.4a1.86,1.86,0,0,0-1.019-2.588,321.173,321.173,0,0,1-45.868-21.853,1.885,1.885,0,0,1-.185-3.126c3.082-2.309,6.166-4.711,9.109-7.137a1.819,1.819,0,0,1,1.9-.256c96.229,43.917,200.41,43.917,295.5,0a1.812,1.812,0,0,1,1.924.233c2.944,2.426,6.027,4.851,9.132,7.16a1.884,1.884,0,0,1-.162,3.126,301.407,301.407,0,0,1-45.89,21.83,1.875,1.875,0,0,0-1,2.611,391.055,391.055,0,0,0,30.014,48.815,1.864,1.864,0,0,0,2.063.7A486.048,486.048,0,0,0,610.7,405.729a1.882,1.882,0,0,0,.765-1.352C623.729,277.594,590.933,167.465,524.531,69.836ZM222.491,337.58c-28.972,0-52.844-26.587-52.844-59.239S193.056,219.1,222.491,219.1c29.665,0,53.306,26.82,52.843,59.239C275.334,310.993,251.924,337.58,222.491,337.58Zm195.38,0c-28.971,0-52.843-26.587-52.843-59.239S388.437,219.1,417.871,219.1c29.667,0,53.307,26.82,52.844,59.239C470.715,310.993,447.538,337.58,417.871,337.58Z"></path>
+          </svg></span></div></a>
+
+      <div class="box box4"></div>
+    </div>
+  </div>
+
+  <footer>Anime4u Networks &mdash; walk through the portal you seek</footer>
+</div>
+
+<script>
+/* ============================================================================
+   ██████╗  ██████╗     ███╗   ██╗ ██████╗ ████████╗    ███████╗██████╗ ██╗████████╗
+   ██╔══██╗██╔═══██╗    ████╗  ██║██╔═══██╗╚══██╔══╝    ██╔════╝██╔══██╗██║╚══██╔══╝
+   ██║  ██║██║   ██║    ██╔██╗ ██║██║   ██║   ██║       █████╗  ██║  ██║██║   ██║
+   ██║  ██║██║   ██║    ██║╚██╗██║██║   ██║   ██║       ██╔══╝  ██║  ██║██║   ██║
+   ██████╔╝╚██████╔╝    ██║ ╚████║╚██████╔╝   ██║       ███████╗██████╔╝██║   ██║
+   ╚═════╝  ╚═════╝     ╚═╝  ╚═══╝ ╚═════╝    ╚═╝       ╚══════╝╚═════╝ ╚═╝   ╚═╝
+
+   ============================================================================
+   ADMIN PANEL — EDIT-IN-CODE ONLY
+   ============================================================================
+   This is the only "admin panel" for the site. There is no login page and no
+   UI route because none is exposed — you edit the two config objects below,
+   save the file, and commit/push to GitHub (or your host of choice).
+
+   HOW TO ADD / EDIT / REMOVE A CHANNEL
+   -------------------------------------
+   Add, edit, or delete objects inside the CHANNELS array below.
+
+     {
+       name:  "Channel display name",   // shown under the poster
+       poster: "https://your-image-url.jpg", // vertical image works best (9:16)
+       link:  "https://destination-url.com"  // where the user is sent on click
+     }
+
+   The carousel is rebuilt automatically from this array on page load —
+   you never need to touch the HTML or the rendering code below it.
+
+   HOW TO EDIT SOCIAL LINKS
+   -------------------------------------
+   Edit the SOCIAL_LINKS object further down (instagram / twitter / discord).
+   ============================================================================ */
+
+const CHANNELS = [
+  {
+    name:  "Channel One",
+    poster: "https://placehold.co/540x960/120c1e/8b3bff?text=Channel+One",
+    link:  "https://example.com/channel-one"
+  },
+  {
+    name:  "Channel Two",
+    poster: "https://placehold.co/540x960/120c1e/8b3bff?text=Channel+Two",
+    link:  "https://example.com/channel-two"
+  },
+  {
+    name:  "Channel Three",
+    poster: "https://placehold.co/540x960/120c1e/8b3bff?text=Channel+Three",
+    link:  "https://example.com/channel-three"
+  },
+  {
+    name:  "Channel Four",
+    poster: "https://placehold.co/540x960/120c1e/8b3bff?text=Channel+Four",
+    link:  "https://example.com/channel-four"
+  },
+  {
+    name:  "Channel Five",
+    poster: "https://placehold.co/540x960/120c1e/8b3bff?text=Channel+Five",
+    link:  "https://example.com/channel-five"
+  }
+];
+
+const SOCIAL_LINKS = {
+  instagram: "https://instagram.com/your-handle",
+  twitter:   "https://x.com/your-handle",
+  discord:   "https://discord.gg/your-invite"
+};
+
+/* ============================================================================
+   END OF ADMIN CONFIG — nothing below this line needs manual editing
+   ============================================================================ */
+
+document.getElementById('social-instagram').href = SOCIAL_LINKS.instagram;
+document.getElementById('social-twitter').href   = SOCIAL_LINKS.twitter;
+document.getElementById('social-discord').href   = SOCIAL_LINKS.discord;
+
+/* ---------------- Cursor-reactive obsidian glow ---------------- */
+const glowfield = document.getElementById('glowfield');
+window.addEventListener('pointermove', (e) => {
+  const xPct = (e.clientX / window.innerWidth) * 100;
+  const yPct = (e.clientY / window.innerHeight) * 100;
+  glowfield.style.setProperty('--mx', xPct + '%');
+  glowfield.style.setProperty('--my', yPct + '%');
+});
+
+/* ---------------- Intro sequence ---------------- */
+const intro = document.getElementById('intro');
+const app = document.getElementById('app');
+
+function endIntro(){
+  intro.classList.add('done');
+  app.classList.add('show');
+}
+// total intro runtime ~3.7s, then reveal app
+setTimeout(endIntro, 3700);
+// allow skipping the intro with a click/tap
+intro.addEventListener('click', endIntro);
+
+/* ---------------- Build carousel from CHANNELS ---------------- */
+const track = document.getElementById('carousel-track');
+
+CHANNELS.forEach((ch, i) => {
+  const portal = document.createElement('div');
+  portal.className = 'portal';
+  portal.dataset.index = i;
+
+  portal.innerHTML = `
+    <img src="${ch.poster}" alt="${ch.name}" draggable="false">
+    <div class="portal-ring"></div>
+    <div class="portal-veil"></div>
+    <div class="portal-name">${ch.name}</div>
+    <button class="portal-btn" aria-label="Open ${ch.name}"></button>
+  `;
+
+  portal.querySelector('.portal-btn').addEventListener('click', (e) => {
+    if (track.dataset.wasDragging === '1') return; // ignore click after a drag
+    openPortal(ch.link);
+  });
+
+  track.appendChild(portal);
+});
+
+const portals = Array.from(document.querySelectorAll('.portal'));
+
+/* ---------------- Active / scale-on-proximity logic ---------------- */
+function updateActivePortal(){
+  const trackRect = track.getBoundingClientRect();
+  const centerX = trackRect.left + trackRect.width / 2;
+
+  let closest = null;
+  let closestDist = Infinity;
+
+  portals.forEach(p => {
+    const r = p.getBoundingClientRect();
+    const pCenter = r.left + r.width / 2;
+    const dist = Math.abs(pCenter - centerX);
+    if (dist < closestDist){ closestDist = dist; closest = p; }
+
+    // proximity-based scale for a smooth "coming closer" feel
+    const maxDist = trackRect.width / 2;
+    const proximity = Math.max(0, 1 - dist / maxDist);
+    const scale = 0.78 + proximity * 0.42;
+    p.style.transform = `scale(${scale.toFixed(3)})`;
+    p.style.filter = `brightness(${(0.55 + proximity * 0.5).toFixed(2)}) saturate(${(0.7 + proximity * 0.4).toFixed(2)})`;
+  });
+
+  portals.forEach(p => p.classList.toggle('active', p === closest));
+}
+
+let rafPending = false;
+function scheduleUpdate(){
+  if (rafPending) return;
+  rafPending = true;
+  requestAnimationFrame(() => { updateActivePortal(); rafPending = false; });
+}
+
+track.addEventListener('scroll', scheduleUpdate);
+window.addEventListener('resize', scheduleUpdate);
+
+/* ---------------- Drag to slide (mouse + touch via Pointer Events) ---------------- */
+let isDown = false;
+let startX = 0;
+let scrollLeftStart = 0;
+let dragMoved = 0;
+
+track.addEventListener('pointerdown', (e) => {
+  isDown = true;
+  dragMoved = 0;
+  track.dataset.wasDragging = '0';
+  track.classList.add('dragging');
+  startX = e.clientX;
+  scrollLeftStart = track.scrollLeft;
+  track.setPointerCapture(e.pointerId);
+});
+
+track.addEventListener('pointermove', (e) => {
+  if (!isDown) return;
+  const dx = e.clientX - startX;
+  dragMoved += Math.abs(dx);
+  track.scrollLeft = scrollLeftStart - dx;
+  scheduleUpdate();
+  if (dragMoved > 6) track.dataset.wasDragging = '1';
+});
+
+function endDrag(){
+  isDown = false;
+  track.classList.remove('dragging');
+  // snap to nearest portal center
+  snapToNearest();
+  setTimeout(() => { track.dataset.wasDragging = '0'; }, 50);
+}
+track.addEventListener('pointerup', endDrag);
+track.addEventListener('pointerleave', () => { if (isDown) endDrag(); });
+
+function snapToNearest(){
+  const trackRect = track.getBoundingClientRect();
+  const centerX = trackRect.left + trackRect.width / 2;
+  let closest = null;
+  let closestDist = Infinity;
+  portals.forEach(p => {
+    const r = p.getBoundingClientRect();
+    const pCenter = r.left + r.width / 2;
+    const dist = Math.abs(pCenter - centerX);
+    if (dist < closestDist){ closestDist = dist; closest = p; }
+  });
+  if (closest) closest.scrollIntoView({ behavior:'smooth', inline:'center', block:'nearest' });
+}
+
+/* ---------------- Prev / next arrows ---------------- */
+document.querySelector('.carousel-nav.prev').addEventListener('click', () => {
+  track.scrollBy({ left: -260, behavior: 'smooth' });
+});
+document.querySelector('.carousel-nav.next').addEventListener('click', () => {
+  track.scrollBy({ left: 260, behavior: 'smooth' });
+});
+
+/* initial layout pass + snap first card to center */
+window.addEventListener('load', () => {
+  scheduleUpdate();
+  if (portals[0]) portals[0].scrollIntoView({ inline: 'center', block: 'nearest' });
+  setTimeout(scheduleUpdate, 60);
+});
+
+/* ---------------- Sharingan loader + redirect ---------------- */
+const loader = document.getElementById('sharingan-loader');
+
+function openPortal(url){
+  loader.classList.add('active');
+  // reset animation so it replays on repeated clicks
+  const eye = loader.querySelector('.sharingan');
+  eye.style.animation = 'none';
+  void eye.offsetWidth;
+  eye.style.animation = '';
+
+  setTimeout(() => {
+    window.location.href = url;
+  }, 1800);
+}
+</script>
+</body>
+</html>
